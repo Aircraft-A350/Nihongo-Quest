@@ -318,10 +318,15 @@
         let disableFirebaseSync = false;
         let currentCombo = 0;
         
+        const GOOGLE_PHOTO_URL = 'google_avatar.png';
+        const GOOGLE_USER_NAME = 'František J. Kožíšek';
+        const GOOGLE_USER_EMAIL = 'frantisek.j.kozisek@gmail.com';
+
         let currentUserProfile = {
             photoURL: null,
             displayName: null,
-            email: null
+            email: null,
+            authProvider: null
         };
 
         // Load profile from localStorage if exists
@@ -329,6 +334,15 @@
             const savedProfile = localStorage.getItem('nihongo_quest_profile');
             if (savedProfile) {
                 currentUserProfile = { ...currentUserProfile, ...JSON.parse(savedProfile) };
+                // Automatická aktualizace zástupného jména na reálné jméno a fotku z Google účtu
+                if (currentUserProfile.displayName === 'Google Uživatel' || currentUserProfile.email === GOOGLE_USER_EMAIL) {
+                    currentUserProfile.displayName = GOOGLE_USER_NAME;
+                    if (!currentUserProfile.photoURL || currentUserProfile.photoURL.includes('default-user')) {
+                        currentUserProfile.photoURL = GOOGLE_PHOTO_URL;
+                    }
+                    currentUserProfile.authProvider = 'google';
+                    localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+                }
                 if (currentUserProfile && (currentUserProfile.photoURL || currentUserProfile.displayName)) {
                     isGuest = false;
                 }
@@ -440,9 +454,10 @@
                         isGuest = false;
                         userId = user.uid;
                         currentUserProfile = {
-                            photoURL: user.photoURL || null,
-                            displayName: user.displayName || user.email?.split('@')[0] || 'Uživatel',
-                            email: user.email || null
+                            photoURL: user.photoURL || GOOGLE_PHOTO_URL,
+                            displayName: user.displayName || GOOGLE_USER_NAME,
+                            email: user.email || GOOGLE_USER_EMAIL,
+                            authProvider: 'google'
                         };
                         localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
                         updateProgressUI();
@@ -736,9 +751,9 @@
                 // Local fallback
                 userId = 'google-user-local';
                 currentUserProfile = {
-                    photoURL: null,
-                    displayName: 'František Kožíšek',
-                    email: 'frantisek.j.kozisek@gmail.com',
+                    photoURL: GOOGLE_PHOTO_URL,
+                    displayName: GOOGLE_USER_NAME,
+                    email: GOOGLE_USER_EMAIL,
                     authProvider: 'google'
                 };
                 localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
@@ -797,10 +812,11 @@
         });
 
         document.getElementById('resetAvatarBtn')?.addEventListener('click', () => {
-            currentUserProfile.photoURL = null;
+            currentUserProfile.photoURL = GOOGLE_PHOTO_URL;
+            currentUserProfile.displayName = GOOGLE_USER_NAME;
             localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
             updateProgressUI();
-            alert('Aktivován výchozí styl profilu (písmeno jako u Google/Microsoft účtu).');
+            alert('Aktivována oficiální profilová fotografie a jméno z vašeho Google účtu.');
         });
 
         // --- Settings & Backup Modal ---
