@@ -114,6 +114,20 @@
                 </div>
             </div>
 
+            <!-- Avatar Settings -->
+            <div class="border-t border-slate-800 pt-3 flex flex-col gap-2">
+                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Profilová fotografie (Google / Vlastní)</span>
+                <div class="flex gap-2">
+                    <button id="uploadAvatarBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 font-bold py-2 rounded text-xs transition-colors flex items-center justify-center gap-1.5">
+                        <i class="fas fa-camera"></i> Nahrát fotku
+                    </button>
+                    <button id="resetAvatarBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold py-2 rounded text-xs transition-colors flex items-center justify-center gap-1.5">
+                        <i class="fab fa-google text-blue-400"></i> Styl Google (F)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Záloha postupu -->
             <div class="border-t border-slate-800 pt-3 flex flex-col gap-2">
                 <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Záloha postupu (Export / Import)</span>
                 <div class="flex gap-2">
@@ -175,14 +189,35 @@
             <!-- Profile & Level -->
             <div class="flex items-center gap-4 w-full md:w-auto justify-start">
                 <div class="relative">
-                    <div id="userAvatarContainer" class="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-cyan-500 flex items-center justify-center bg-slate-700 shadow-[0_0_10px_rgba(6,182,212,0.5)] overflow-hidden cursor-pointer group relative" title="Kliknutím můžete nahrát vlastní profilovou fotku">
+                    <div id="userAvatarContainer" class="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-cyan-500 flex items-center justify-center bg-slate-700 shadow-[0_0_12px_rgba(6,182,212,0.4)] overflow-hidden cursor-pointer group relative" title="Kliknutím můžete nahrát vlastní profilovou fotku">
+                        <!-- Default Icon (Guest) -->
                         <i id="userIcon" class="fas fa-user text-cyan-400 text-xl md:text-2xl group-hover:scale-110 transition-transform"></i>
+                        
+                        <!-- Uploaded / Photo Avatar -->
                         <img id="userAvatarImg" src="" alt="Avatar" class="w-full h-full object-cover hidden" referrerpolicy="no-referrer">
+
+                        <!-- Google / Microsoft Style Letter Avatar -->
+                        <div id="userLetterAvatar" class="w-full h-full hidden items-center justify-center font-bold text-white text-xl md:text-2xl select-none" style="background: linear-gradient(135deg, #1a73e8, #4285f4);">
+                            F
+                        </div>
+
+                        <!-- Hover Camera Icon -->
                         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-[10px] text-cyan-300">
                             <i class="fas fa-camera"></i>
                         </div>
                     </div>
                     <input type="file" id="avatarFileInput" accept="image/*" class="hidden">
+
+                    <!-- Google Badge in Top Right -->
+                    <div id="googleBadge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white shadow flex items-center justify-center border border-slate-700 hidden" title="Účet Google">
+                        <svg class="w-3 h-3" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                    </div>
+
                     <div id="uiLevelBadge" class="absolute -bottom-2 -right-2 bg-pink-500 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded shadow-lg">-</div>
                 </div>
                 <div>
@@ -701,9 +736,10 @@
                 // Local fallback
                 userId = 'google-user-local';
                 currentUserProfile = {
-                    photoURL: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
-                    displayName: 'Google Uživatel',
-                    email: 'frantisek.j.kozisek@gmail.com'
+                    photoURL: null,
+                    displayName: 'František Kožíšek',
+                    email: 'frantisek.j.kozisek@gmail.com',
+                    authProvider: 'google'
                 };
                 localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
                 isGuest = false;
@@ -754,6 +790,17 @@
                 updateProgressUI();
             };
             reader.readAsDataURL(file);
+        });
+
+        document.getElementById('uploadAvatarBtn')?.addEventListener('click', () => {
+            avatarFileInput?.click();
+        });
+
+        document.getElementById('resetAvatarBtn')?.addEventListener('click', () => {
+            currentUserProfile.photoURL = null;
+            localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+            updateProgressUI();
+            alert('Aktivován výchozí styl profilu (písmeno jako u Google/Microsoft účtu).');
         });
 
         // --- Settings & Backup Modal ---
@@ -864,14 +911,43 @@
             // Avatar photo update
             const userAvatarImg = document.getElementById('userAvatarImg');
             const userIcon = document.getElementById('userIcon');
+            const userLetterAvatar = document.getElementById('userLetterAvatar');
+            const googleBadge = document.getElementById('googleBadge');
+
             if (currentUserProfile && currentUserProfile.photoURL) {
                 userAvatarImg.src = currentUserProfile.photoURL;
                 userAvatarImg.classList.remove('hidden');
                 userIcon.classList.add('hidden');
+                if (userLetterAvatar) {
+                    userLetterAvatar.classList.remove('flex');
+                    userLetterAvatar.classList.add('hidden');
+                }
+            } else if (!isGuest && currentUserProfile && (currentUserProfile.displayName || currentUserProfile.email)) {
+                // Google / Microsoft style letter avatar
+                const nameToUse = (currentUserProfile.displayName || currentUserProfile.email || 'U').trim();
+                const initial = nameToUse.charAt(0).toUpperCase();
+                if (userLetterAvatar) {
+                    userLetterAvatar.textContent = initial;
+                    userLetterAvatar.classList.remove('hidden');
+                    userLetterAvatar.classList.add('flex');
+                }
+                userAvatarImg.classList.add('hidden');
+                userIcon.classList.add('hidden');
             } else {
                 userAvatarImg.src = '';
                 userAvatarImg.classList.add('hidden');
+                if (userLetterAvatar) {
+                    userLetterAvatar.classList.remove('flex');
+                    userLetterAvatar.classList.add('hidden');
+                }
                 userIcon.classList.remove('hidden');
+            }
+
+            // Google account badge
+            if (!isGuest && currentUserProfile && (currentUserProfile.authProvider === 'google' || currentUserProfile.email?.includes('gmail.com'))) {
+                googleBadge?.classList.remove('hidden');
+            } else {
+                googleBadge?.classList.add('hidden');
             }
 
             if (isGuest) {
