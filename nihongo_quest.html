@@ -175,9 +175,14 @@
             <!-- Profile & Level -->
             <div class="flex items-center gap-4 w-full md:w-auto justify-start">
                 <div class="relative">
-                    <div class="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-cyan-500 flex items-center justify-center bg-slate-700 shadow-[0_0_10px_rgba(6,182,212,0.5)]">
-                        <i class="fas fa-user text-cyan-400 text-xl md:text-2xl"></i>
+                    <div id="userAvatarContainer" class="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-cyan-500 flex items-center justify-center bg-slate-700 shadow-[0_0_10px_rgba(6,182,212,0.5)] overflow-hidden cursor-pointer group relative" title="Kliknutím můžete nahrát vlastní profilovou fotku">
+                        <i id="userIcon" class="fas fa-user text-cyan-400 text-xl md:text-2xl group-hover:scale-110 transition-transform"></i>
+                        <img id="userAvatarImg" src="" alt="Avatar" class="w-full h-full object-cover hidden" referrerpolicy="no-referrer">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-[10px] text-cyan-300">
+                            <i class="fas fa-camera"></i>
+                        </div>
                     </div>
+                    <input type="file" id="avatarFileInput" accept="image/*" class="hidden">
                     <div id="uiLevelBadge" class="absolute -bottom-2 -right-2 bg-pink-500 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded shadow-lg">-</div>
                 </div>
                 <div>
@@ -264,7 +269,7 @@
     <script type="module">
         // Firebase Configuration (Standard boilerplate structure)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global State & User Preferences
@@ -277,6 +282,23 @@
         let trainingInputLocked = false;
         let disableFirebaseSync = false;
         let currentCombo = 0;
+        
+        let currentUserProfile = {
+            photoURL: null,
+            displayName: null,
+            email: null
+        };
+
+        // Load profile from localStorage if exists
+        try {
+            const savedProfile = localStorage.getItem('nihongo_quest_profile');
+            if (savedProfile) {
+                currentUserProfile = { ...currentUserProfile, ...JSON.parse(savedProfile) };
+                if (currentUserProfile && (currentUserProfile.photoURL || currentUserProfile.displayName)) {
+                    isGuest = false;
+                }
+            }
+        } catch(e) {}
         
         let settings = {
             sfxEnabled: true,
@@ -377,6 +399,20 @@
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        isGuest = false;
+                        userId = user.uid;
+                        currentUserProfile = {
+                            photoURL: user.photoURL || null,
+                            displayName: user.displayName || user.email?.split('@')[0] || 'Uživatel',
+                            email: user.email || null
+                        };
+                        localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+                        updateProgressUI();
+                    }
+                });
             }
         } catch (e) {
             console.warn("Firebase not configured, default to local storage.");
@@ -585,7 +621,15 @@
                 } else {
                     userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 }
-                userId = userCredential.user.uid;
+                const user = userCredential.user;
+                userId = user.uid;
+                
+                currentUserProfile = {
+                    photoURL: user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}&backgroundColor=0f172a`,
+                    displayName: user.displayName || email.split('@')[0],
+                    email: email
+                };
+                localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
                 
                 if (userId && db) {
                     try {
@@ -606,6 +650,12 @@
             } catch (err) {
                 // Fallback to local storage user
                 userId = 'local-user-' + email.replace(/[^a-zA-Z0-9]/g, '_');
+                currentUserProfile = {
+                    photoURL: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}&backgroundColor=0f172a`,
+                    displayName: email.split('@')[0],
+                    email: email
+                };
+                localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
                 isGuest = false;
                 closeAuth();
             } finally {
@@ -623,8 +673,16 @@
                 if (!auth) throw new Error("Offline mode");
                 const provider = new GoogleAuthProvider();
                 provider.setCustomParameters({ prompt: 'select_account' });
-                await signInWithPopup(auth, provider);
-                userId = auth.currentUser?.uid;
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                userId = user?.uid;
+                
+                currentUserProfile = {
+                    photoURL: user?.photoURL || null,
+                    displayName: user?.displayName || user?.email?.split('@')[0] || 'Uživatel',
+                    email: user?.email || null
+                };
+                localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
                 
                 if (userId && db) {
                     try {
@@ -642,6 +700,12 @@
             } catch(e) {
                 // Local fallback
                 userId = 'google-user-local';
+                currentUserProfile = {
+                    photoURL: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
+                    displayName: 'Google Uživatel',
+                    email: 'frantisek.j.kozisek@gmail.com'
+                };
+                localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
                 isGuest = false;
                 closeAuth();
             } finally {
@@ -666,8 +730,30 @@
             }
             isGuest = true;
             userId = null;
+            currentUserProfile = { photoURL: null, displayName: null, email: null };
+            localStorage.removeItem('nihongo_quest_profile');
             updateProgressUI();
             renderContent();
+        });
+
+        // Avatar click to upload or change custom avatar
+        const userAvatarContainer = document.getElementById('userAvatarContainer');
+        const avatarFileInput = document.getElementById('avatarFileInput');
+
+        userAvatarContainer?.addEventListener('click', () => {
+            avatarFileInput?.click();
+        });
+
+        avatarFileInput?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                currentUserProfile.photoURL = event.target.result;
+                localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+                updateProgressUI();
+            };
+            reader.readAsDataURL(file);
         });
 
         // --- Settings & Backup Modal ---
@@ -775,10 +861,23 @@
             const topLoginBtn = document.getElementById('topLoginBtn');
             const topLogoutBtn = document.getElementById('topLogoutBtn');
 
+            // Avatar photo update
+            const userAvatarImg = document.getElementById('userAvatarImg');
+            const userIcon = document.getElementById('userIcon');
+            if (currentUserProfile && currentUserProfile.photoURL) {
+                userAvatarImg.src = currentUserProfile.photoURL;
+                userAvatarImg.classList.remove('hidden');
+                userIcon.classList.add('hidden');
+            } else {
+                userAvatarImg.src = '';
+                userAvatarImg.classList.add('hidden');
+                userIcon.classList.remove('hidden');
+            }
+
             if (isGuest) {
                 uiLevelText.textContent = `LOCAL GUEST`;
                 uiLevelBadge.textContent = `L${currentLevel}`;
-                uiRankText.textContent = ranks[rankIndex];
+                uiRankText.textContent = currentUserProfile.displayName || ranks[rankIndex];
                 connStatus.className = "w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0";
                 connStatus.title = "Lokální režim (Postup se ukládá do prohlížeče)";
                 topLoginBtn.classList.remove('hidden');
@@ -790,7 +889,7 @@
             } else {
                 uiLevelText.textContent = `LEVEL ${currentLevel}`;
                 uiLevelBadge.textContent = `L${currentLevel}`;
-                uiRankText.textContent = ranks[rankIndex];
+                uiRankText.textContent = currentUserProfile.displayName || ranks[rankIndex];
                 connStatus.className = "w-2.5 h-2.5 rounded-full bg-cyan-500 glow-cyan shrink-0";
                 connStatus.title = "Online / Synced";
                 topLoginBtn.classList.remove('flex');
