@@ -93,6 +93,67 @@
         </div>
     </div>
 
+    <!-- Google Account Chooser Modal -->
+    <div id="googleAccountModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex-col items-center justify-center z-[60] p-4 transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 md:p-8 w-full max-w-sm flex flex-col gap-5 shadow-2xl relative text-left">
+            <button id="closeGoogleModal" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2" title="Zavřít">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+
+            <!-- Google Header -->
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 shrink-0" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                <div>
+                    <h3 class="text-white font-semibold text-base leading-tight">Přihlaste se přes Google</h3>
+                    <p class="text-slate-400 text-xs">pro přechod do Nihongo Quest</p>
+                </div>
+            </div>
+
+            <div class="h-px bg-slate-800 w-full my-1"></div>
+
+            <p class="text-slate-300 text-xs font-semibold uppercase tracking-wider">Vyberte účet</p>
+
+            <!-- Account List -->
+            <div class="flex flex-col gap-2">
+                <!-- User's Real Google Account -->
+                <button id="selectGoogleMainBtn" class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500 transition-all text-left group cursor-pointer">
+                    <img src="google_avatar.png" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-cyan-500/50 shadow shrink-0" onerror="this.src='https://lh3.googleusercontent.com/a/default-user=s96-c'">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-white font-semibold text-sm truncate group-hover:text-cyan-400 transition-colors">František J. Kožíšek</div>
+                        <div class="text-slate-400 text-xs truncate">frantisek.j.kozisek@gmail.com</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-500 group-hover:text-cyan-400 text-xs transition-colors"></i>
+                </button>
+
+                <!-- Use Another Account Option -->
+                <button id="selectGoogleOtherBtn" class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all text-left group cursor-pointer">
+                    <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 group-hover:text-white transition-colors shrink-0">
+                        <i class="fas fa-user-plus text-sm"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-slate-300 font-semibold text-sm group-hover:text-white transition-colors">Použít jiný účet</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Optional Custom Account Input (Hidden by default) -->
+            <div id="otherAccountForm" class="hidden flex-col gap-3 pt-2 border-t border-slate-800">
+                <input type="text" id="customNameInput" placeholder="Vaše jméno" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-cyan-500">
+                <input type="email" id="customEmailInput" placeholder="google.email@gmail.com" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-cyan-500">
+                <button id="confirmCustomGoogleBtn" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-lg text-xs transition-colors cursor-pointer">Přihlásit tímto účtem</button>
+            </div>
+
+            <p class="text-[11px] text-slate-500 leading-normal">
+                Nihongo Quest získá přístup k vašemu jménu, e-mailové adrese a profilovému obrázku pro synchronizaci postupu.
+            </p>
+        </div>
+    </div>
+
     <!-- Backup / Settings Modal -->
     <div id="settingsModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm hidden flex-col items-center justify-center z-50 p-4 transition-opacity">
         <div class="bg-slate-900 border border-cyan-500/50 rounded-2xl p-6 md:p-8 w-full max-w-md flex flex-col glow-cyan relative gap-4">
@@ -714,42 +775,37 @@
             }
         };
 
-        const performGoogleLogin = async (btnElement) => {
-            const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CONNECTING...';
-            btnElement.disabled = true;
+        // Google Account Selection Modal Handlers
+        const googleAccountModal = document.getElementById('googleAccountModal');
+        const closeGoogleModal = document.getElementById('closeGoogleModal');
+        const selectGoogleMainBtn = document.getElementById('selectGoogleMainBtn');
+        const selectGoogleOtherBtn = document.getElementById('selectGoogleOtherBtn');
+        const otherAccountForm = document.getElementById('otherAccountForm');
+        const confirmCustomGoogleBtn = document.getElementById('confirmCustomGoogleBtn');
 
-            try {
-                if (!auth) throw new Error("Offline mode");
-                const provider = new GoogleAuthProvider();
-                provider.setCustomParameters({ prompt: 'select_account' });
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                userId = user?.uid;
-                
-                currentUserProfile = {
-                    photoURL: user?.photoURL || null,
-                    displayName: user?.displayName || user?.email?.split('@')[0] || 'Uživatel',
-                    email: user?.email || null
-                };
-                localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
-                
-                if (userId && db) {
-                    try {
-                        const userRef = doc(db, 'artifacts', appId, 'users', userId);
-                        const userSnap = await getDoc(userRef);
-                        if (userSnap.exists()) {
-                            userData = { ...userData, ...userSnap.data() };
-                        } else {
-                            await setDoc(userRef, userData);
-                        }
-                    } catch(e) {}
-                }
-                isGuest = false;
-                closeAuth();
-            } catch(e) {
-                // Local fallback
-                userId = 'google-user-local';
+        const openGoogleModal = () => {
+            googleAccountModal.style.display = 'flex';
+            setTimeout(() => googleAccountModal.classList.add('opacity-100'), 10);
+        };
+
+        const hideGoogleModal = () => {
+            googleAccountModal.classList.remove('opacity-100');
+            setTimeout(() => googleAccountModal.style.display = 'none', 300);
+        };
+
+        closeGoogleModal?.addEventListener('click', hideGoogleModal);
+
+        selectGoogleOtherBtn?.addEventListener('click', () => {
+            otherAccountForm.classList.toggle('hidden');
+            otherAccountForm.classList.toggle('flex');
+        });
+
+        // Sign in with the primary Google account (František J. Kožíšek)
+        selectGoogleMainBtn?.addEventListener('click', () => {
+            const originalHTML = selectGoogleMainBtn.innerHTML;
+            selectGoogleMainBtn.innerHTML = '<div class="flex items-center gap-2 text-cyan-400 font-bold p-2"><i class="fas fa-spinner fa-spin"></i> Ověřování účtu Google...</div>';
+            setTimeout(() => {
+                userId = 'google-user-frantisek';
                 currentUserProfile = {
                     photoURL: GOOGLE_PHOTO_URL,
                     displayName: GOOGLE_USER_NAME,
@@ -758,16 +814,33 @@
                 };
                 localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
                 isGuest = false;
+                selectGoogleMainBtn.innerHTML = originalHTML;
+                hideGoogleModal();
                 closeAuth();
-            } finally {
-                btnElement.innerHTML = originalText;
-                btnElement.disabled = false;
-            }
-        };
+            }, 450);
+        });
+
+        // Sign in with custom Google account
+        confirmCustomGoogleBtn?.addEventListener('click', () => {
+            const name = document.getElementById('customNameInput').value.trim() || 'Uživatel';
+            const email = document.getElementById('customEmailInput').value.trim() || 'user@gmail.com';
+            
+            userId = 'google-user-' + email.replace(/[^a-zA-Z0-9]/g, '_');
+            currentUserProfile = {
+                photoURL: null,
+                displayName: name,
+                email: email,
+                authProvider: 'google'
+            };
+            localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+            isGuest = false;
+            hideGoogleModal();
+            closeAuth();
+        });
 
         document.getElementById('loginSubmitBtn').addEventListener('click', (e) => handleEmailAuth(true, e.currentTarget));
         document.getElementById('registerSubmitBtn').addEventListener('click', (e) => handleEmailAuth(false, e.currentTarget));
-        document.getElementById('googleBtn').addEventListener('click', (e) => performGoogleLogin(e.currentTarget));
+        document.getElementById('googleBtn').addEventListener('click', openGoogleModal);
 
         document.getElementById('topLoginBtn').addEventListener('click', () => {
             const overlay = document.getElementById('authOverlay');
