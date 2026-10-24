@@ -64,6 +64,8 @@
                     <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-cyan-500"></i>
                     <input type="password" id="passwordInput" autocomplete="current-password" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500 transition-colors">
                 </div>
+                <!-- Error / Status Message Container -->
+                <div id="authErrorMsg" class="text-xs text-center font-bold min-h-[1.25rem] py-0.5 hidden"></div>
                 <div class="flex gap-3 w-full">
                     <button id="loginSubmitBtn" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition-colors glow-cyan uppercase tracking-wider text-xs md:text-sm">Přihlásit se</button>
                     <button id="registerSubmitBtn" class="flex-1 bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 rounded-lg transition-colors glow-pink uppercase tracking-wider text-xs md:text-sm">Vytvořit účet</button>
@@ -546,9 +548,31 @@
             } catch(e) {}
         }
 
+        function getLocalAccounts() {
+            try {
+                return JSON.parse(localStorage.getItem('nihongo_quest_accounts')) || {};
+            } catch(e) {
+                return {};
+            }
+        }
+
+        function saveLocalAccounts(accounts) {
+            try {
+                localStorage.setItem('nihongo_quest_accounts', JSON.stringify(accounts));
+            } catch(e) {}
+        }
+
         async function saveProgress() {
             try {
                 localStorage.setItem('nihongo_quest_user', JSON.stringify(userData));
+
+                if (!isGuest && currentUserProfile && currentUserProfile.email) {
+                    const accounts = getLocalAccounts();
+                    if (accounts[currentUserProfile.email]) {
+                        accounts[currentUserProfile.email].userData = { ...userData };
+                        saveLocalAccounts(accounts);
+                    }
+                }
             } catch(e) {}
 
             if (!isGuest && userId && db && !disableFirebaseSync) {
@@ -710,13 +734,33 @@
         });
 
         const handleEmailAuth = async (isLogin, btnElement) => {
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
+            const emailInput = document.getElementById('emailInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const errorMsg = document.getElementById('authErrorMsg');
             
+            const email = (emailInput.value || '').trim().toLowerCase();
+            const password = (passwordInput.value || '').trim();
+
+            const showMsg = (text, isError = true) => {
+                if (errorMsg) {
+                    errorMsg.textContent = text;
+                    errorMsg.className = `text-xs text-center font-bold py-1 ${isError ? 'text-pink-500 animate-pulse' : 'text-green-400'}`;
+                    errorMsg.classList.remove('hidden');
+                }
+            };
+
             if (!email || !password) {
-                const orig = btnElement.innerHTML;
-                btnElement.innerHTML = 'Vyplňte údaje';
-                setTimeout(() => btnElement.innerHTML = orig, 2000);
+                showMsg('Vyplňte prosím e-mail i heslo.');
+                return;
+            }
+
+            if (!email.includes('@') || !email.includes('.')) {
+                showMsg('Zadejte platnou e-mailovou adresu.');
+                return;
+            }
+
+            if (password.length < 4) {
+                showMsg('Heslo musí mít alespoň 4 znaky.');
                 return;
             }
 
@@ -725,50 +769,131 @@
             btnElement.disabled = true;
 
             try {
-                if (!auth) throw new Error("Offline mode active.");
-                let userCredential;
-                if (isLogin) {
-                    userCredential = await signInWithEmailAndPassword(auth, email, password);
-                } else {
-                    userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                }
-                const user = userCredential.user;
-                userId = user.uid;
-                
-                currentUserProfile = {
-                    photoURL: user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}&backgroundColor=0f172a`,
-                    displayName: user.displayName || email.split('@')[0],
-                    email: email
-                };
-                localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
-                
-                if (userId && db) {
+                // If live Firebase auth is configured, try Firebase first
+                if (auth) {
                     try {
-                        const userRef = doc(db, 'artifacts', appId, 'users', userId);
-                        const userSnap = await getDoc(userRef);
-                        if (userSnap.exists()) {
-                            userData = { ...userData, ...userSnap.data() };
+                        let userCredential;
+                        if (isLogin) {
+                            userCredential = await signInWithEmailAndPassword(auth, email, password);
                         } else {
-                            await setDoc(userRef, userData);
+                            userCredential = await createUserWithEmailAndPassword(auth, email, password);
                         }
-                    } catch (fsErr) {
-                        disableFirebaseSync = true;
+                        const user = userCredential.user;
+                        userId = user.uid;
+                        currentUserProfile = {
+                            photoURL: user.photoURL || null,
+                            displayName: user.displayName || email.split('@')[0],
+                            email: email,
+                            authProvider: 'email'
+                        };
+                        localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+                        isGuest = false;
+                        showMsg('Úspěšně přihlášeno!', false);
+                        setTimeout(() => closeAuth(), 400);
+                        return;
+                    } catch(fbErr) {
+                        console.warn("Firebase email auth:", fbErr.message);
                     }
                 }
 
-                isGuest = false;
-                closeAuth();
+                // Robust Local Storage Account System (100% works on GitHub Pages & offline)
+                const accounts = getLocalAccounts();
+                
+                if (isLogin) {
+                    // LOGIN FLOW
+                    if (accounts[email]) {
+                        // Check password
+                        if (accounts[email].password !== password) {
+                            showMsg('Nesprávné heslo pro tento účet.');
+                            return;
+                        }
+                        // Correct password: log in and load saved progress
+                        const acc = accounts[email];
+                        userId = 'local-user-' + email.replace(/[^a-zA-Z0-9]/g, '_');
+                        if (acc.userData) {
+                            userData = { ...userData, ...acc.userData };
+                            saveProgress();
+                        }
+                        currentUserProfile = {
+                            photoURL: acc.photoURL || null,
+                            displayName: acc.displayName || email.split('@')[0],
+                            email: email,
+                            authProvider: 'email'
+                        };
+                        localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+                        isGuest = false;
+                        showMsg('Úspěšně přihlášeno!', false);
+                        setTimeout(() => closeAuth(), 400);
+                    } else {
+                        // Account doesn't exist yet: create it automatically and log in!
+                        accounts[email] = {
+                            email: email,
+                            password: password,
+                            displayName: email.split('@')[0],
+                            photoURL: null,
+                            userData: { ...userData }
+                        };
+                        saveLocalAccounts(accounts);
+
+                        userId = 'local-user-' + email.replace(/[^a-zA-Z0-9]/g, '_');
+                        currentUserProfile = {
+                            photoURL: null,
+                            displayName: email.split('@')[0],
+                            email: email,
+                            authProvider: 'email'
+                        };
+                        localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+                        isGuest = false;
+                        showMsg('Nový účet vytvořen a přihlášen!', false);
+                        setTimeout(() => closeAuth(), 400);
+                    }
+                } else {
+                    // REGISTER FLOW (Vytvořit účet)
+                    if (accounts[email]) {
+                        if (accounts[email].password === password) {
+                            userId = 'local-user-' + email.replace(/[^a-zA-Z0-9]/g, '_');
+                            currentUserProfile = {
+                                photoURL: accounts[email].photoURL || null,
+                                displayName: accounts[email].displayName || email.split('@')[0],
+                                email: email,
+                                authProvider: 'email'
+                            };
+                            localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+                            isGuest = false;
+                            showMsg('Účet již existoval, přihlášeno!', false);
+                            setTimeout(() => closeAuth(), 400);
+                        } else {
+                            showMsg('Účet s tímto e-mailem již existuje. Zadejte heslo a přihlaste se.');
+                        }
+                        return;
+                    }
+
+                    // Create new account
+                    accounts[email] = {
+                        email: email,
+                        password: password,
+                        displayName: email.split('@')[0],
+                        photoURL: null,
+                        userData: { ...userData }
+                    };
+                    saveLocalAccounts(accounts);
+
+                    userId = 'local-user-' + email.replace(/[^a-zA-Z0-9]/g, '_');
+                    currentUserProfile = {
+                        photoURL: null,
+                        displayName: email.split('@')[0],
+                        email: email,
+                        authProvider: 'email'
+                    };
+                    localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
+                    isGuest = false;
+                    showMsg('Účet byl úspěšně vytvořen!', false);
+                    setTimeout(() => closeAuth(), 400);
+                }
+
             } catch (err) {
-                // Fallback to local storage user
-                userId = 'local-user-' + email.replace(/[^a-zA-Z0-9]/g, '_');
-                currentUserProfile = {
-                    photoURL: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}&backgroundColor=0f172a`,
-                    displayName: email.split('@')[0],
-                    email: email
-                };
-                localStorage.setItem('nihongo_quest_profile', JSON.stringify(currentUserProfile));
-                isGuest = false;
-                closeAuth();
+                console.error("Auth error", err);
+                showMsg('Nastala chyba při ověřování.');
             } finally {
                 btnElement.innerHTML = originalText;
                 btnElement.disabled = false;
@@ -852,12 +977,20 @@
             if (auth) {
                 try { await signOut(auth); } catch(e) {}
             }
+            saveProgress();
             isGuest = true;
             userId = null;
-            currentUserProfile = { photoURL: null, displayName: null, email: null };
+            currentUserProfile = { photoURL: null, displayName: null, email: null, authProvider: null };
             localStorage.removeItem('nihongo_quest_profile');
             updateProgressUI();
             renderContent();
+        });
+
+        document.getElementById('emailInput')?.addEventListener('input', () => {
+            document.getElementById('authErrorMsg')?.classList.add('hidden');
+        });
+        document.getElementById('passwordInput')?.addEventListener('input', () => {
+            document.getElementById('authErrorMsg')?.classList.add('hidden');
         });
 
         // Avatar click to upload or change custom avatar
