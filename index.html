@@ -162,6 +162,95 @@
         body .bg-cyan-600 { background-color: #5aaeb0 !important; }
         body .bg-gradient-to-r { background-image: linear-gradient(90deg, #c985a6, #e2a8b7) !important; }
         body .shadow-\[0_0_15px_rgba\(6\,182\,212\,0\.15\)\] { box-shadow: 0 18px 45px rgba(65, 113, 127, .16) !important; }
+
+        /* Liquid Glass system: content stays quiet, controls float above it. */
+        :root {
+            --surface: rgba(255, 255, 255, .76);
+            --surface-soft: rgba(255, 255, 255, .56);
+            --surface-border: rgba(255, 255, 255, .88);
+            --ink: #243746;
+            --muted: #607582;
+            --accent: #3a949a;
+            --accent-warm: #bd668d;
+            --radius-panel: 1.25rem;
+            --radius-control: .75rem;
+        }
+        body {
+            background: #edf6f5;
+            color: var(--ink);
+        }
+        body::before { display: none; }
+        .app-header { margin-bottom: 1.5rem; }
+        .glass-panel {
+            background: var(--surface) !important;
+            border: 1px solid var(--surface-border) !important;
+            border-radius: var(--radius-panel) !important;
+            box-shadow: 0 14px 34px rgba(54, 94, 103, .12), inset 0 1px 0 rgba(255,255,255,.9) !important;
+            -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+            backdrop-filter: blur(18px) saturate(125%) !important;
+        }
+        .glass-tile {
+            background: var(--surface-soft) !important;
+            border: 1px solid rgba(255,255,255,.78) !important;
+            border-radius: var(--radius-control) !important;
+            box-shadow: 0 6px 16px rgba(54, 94, 103, .08), inset 0 1px 0 rgba(255,255,255,.78) !important;
+            -webkit-backdrop-filter: blur(12px) saturate(115%) !important;
+            backdrop-filter: blur(12px) saturate(115%) !important;
+        }
+        .glass-panel::before, .glass-panel::after,
+        .glass-tile::before, .glass-tile::after,
+        .glass-control::before, .glass-control::after { display: none; }
+        .glass-tile:hover,
+        .glass-control:hover {
+            border-color: rgba(58,148,154,.42) !important;
+            box-shadow: 0 8px 20px rgba(54, 94, 103, .12) !important;
+        }
+        .glass-tile:hover { transform: translateY(-1px); }
+        .glass-control {
+            background: rgba(255,255,255,.64) !important;
+            border: 1px solid rgba(255,255,255,.86) !important;
+            border-radius: 999px !important;
+            box-shadow: 0 8px 22px rgba(54, 94, 103, .1), inset 0 1px 0 rgba(255,255,255,.9) !important;
+            -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+            backdrop-filter: blur(16px) saturate(120%) !important;
+        }
+        .nav-tab, .mode-btn {
+            border-radius: var(--radius-control) !important;
+            min-height: 2.5rem;
+            color: var(--muted) !important;
+        }
+        .nav-tab.active-tab, .mode-btn.active {
+            background: rgba(255,255,255,.88) !important;
+            border-color: rgba(58,148,154,.28) !important;
+            color: var(--accent) !important;
+            box-shadow: 0 4px 12px rgba(54,94,103,.1), inset 0 1px 0 rgba(255,255,255,.95) !important;
+        }
+        .mode-btn.active { color: var(--accent-warm) !important; }
+        .nav-tab:hover, .mode-btn:hover { color: var(--accent) !important; }
+        .nav-tab:focus-visible, .mode-btn:focus-visible,
+        button:focus-visible, input:focus-visible {
+            outline: 2px solid rgba(58,148,154,.55);
+            outline-offset: 2px;
+        }
+        .content-surface { min-height: 18rem; }
+        .progress-panel { margin-bottom: 1.5rem !important; }
+        #trainingInput {
+            background: rgba(255,255,255,.7) !important;
+            border-color: rgba(102,137,145,.34) !important;
+            color: var(--ink) !important;
+            border-radius: var(--radius-control) !important;
+        }
+        #trainingInput:focus {
+            border-color: rgba(58,148,154,.7) !important;
+            box-shadow: 0 0 0 3px rgba(58,148,154,.14);
+        }
+        #trainAudioBtn {
+            background: rgba(255,255,255,.65) !important;
+            border-color: rgba(102,137,145,.26) !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .glass-tile:hover, .glass-control:hover { transform: none; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
@@ -343,7 +432,7 @@
     <div class="max-w-5xl mx-auto w-full p-4 md:p-8 flex flex-col flex-1">
         
         <!-- Header -->
-        <header class="flex flex-col lg:flex-row justify-between items-center mb-6 md:mb-8 gap-4 w-full">
+        <header class="app-header flex flex-col lg:flex-row justify-between items-center gap-4 w-full">
             <div class="flex justify-between items-center w-full lg:w-auto gap-2">
                 <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-pink-500 flex items-center gap-2 text-glow-pink shrink-0">
                     <span class="text-white bg-pink-500 rounded p-1 text-xs md:text-sm">文</span> NIHONGO QUEST
@@ -372,7 +461,7 @@
         </header>
 
         <!-- Progress Section -->
-        <div class="glass-panel bg-cyber-panel rounded-xl border-cyan-900/50 p-4 md:p-6 mb-8 flex flex-col md:flex-row items-center gap-4 md:gap-8 shadow-[0_0_15px_rgba(6,182,212,0.15)] w-full relative">
+        <div class="progress-panel glass-panel bg-cyber-panel rounded-xl border-cyan-900/50 p-4 md:p-6 flex flex-col md:flex-row items-center gap-4 md:gap-8 shadow-[0_0_15px_rgba(6,182,212,0.15)] w-full relative">
             
             <!-- Profile & Level -->
             <div class="flex items-center gap-4 w-full md:w-auto justify-start">
@@ -457,7 +546,7 @@
         </div>
 
         <!-- Main Content Area -->
-        <main id="mainContent" class="flex-1 flex flex-col w-full"></main>
+        <main id="mainContent" class="content-surface flex-1 flex flex-col w-full"></main>
     </div>
 
     <!-- Character Details Modal (Stroke Animation) -->
