@@ -1,39 +1,55 @@
-name: Deploy Nihongo Quest to GitHub Pages
+name: CI/CD to Azure Storage Static Website
 
 on:
   push:
     branches: ["main"]
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 concurrency:
-  group: "pages"
+  group: "azure-storage-static-website"
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
+      - name: Validate static site files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f index.html
+          test -f google_avatar.png
+          grep -q '<!DOCTYPE html>' index.html
+          grep -q '<script type="module">' index.html
+          grep -q 'google_avatar.png' index.html
+          test "$(sha256sum index.html | cut -d' ' -f1)" = "$(sha256sum nihongo_quest.html | cut -d' ' -f1)"
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+  deploy:
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Upload to Azure Storage Static Website
+        uses: azure/cli@v2
         with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          azcliversion: latest
+          inlineScript: |
+            set -euo pipefail
+            for file in index.html nihongo_quest.html google_avatar.png; do
+              az storage blob upload \
+                --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}" \
+                --account-key "${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}" \
+                --container-name '$web' \
+                --name "$file" \
+                --file "$file" \
+                --overwrite
+            done

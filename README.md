@@ -4,7 +4,7 @@
 > Procvičujte Hiraganu, Katakanu a Kanji pomocí kvízů, animací tahů znaků a nativní audio výslovnosti.
 
 ![Licence](https://img.shields.io/badge/licence-MIT-pink.svg)
-![GitHub Pages](https://img.shields.io/badge/nasazení-GitHub%20Pages-cyan.svg)
+![Azure Storage](https://img.shields.io/badge/nasazení-Azure%20Storage-cyan.svg)
 ![Stav](https://img.shields.io/badge/stav-aktivní-brightgreen.svg)
 
 ---
@@ -28,14 +28,31 @@
   - Možnost exportu a importu kompletní zálohy postupu v JSON formátu bez nutnosti registrace.
   - Volitelná podpora Firebase Auth a synchronizace s Firestore.
 - **Automatické nasazení (CI/CD)**:
-  - Nastavený GitHub Actions workflow, který při každém pushi na větev `main` automaticky sestaví a nasadí nejnovější verzi na GitHub Pages.
+  - GitHub Actions workflow nejprve ověří statické soubory a po úspěchu nahraje změny z větve `main` do Azure Storage Static Website.
 
 ---
 
 ## 🚀 Živá verze aplikace
 
-Po aktivaci GitHub Pages bude aplikace dostupná na adrese:  
-`https://Aircraft-A350.github.io/Nihongo-Quest/`
+Web běží na Azure Storage Static Website:
+
+**https://nihongoquest1113220123.z1.web.core.windows.net/**
+
+## ☁️ Nasazení na Azure
+
+Aplikace je pouze statický HTML/JS web bez serveru nebo buildu. Azure Static Web Apps nebylo možné použít, protože podporované regiony služby nejsou dostupné v Azure for Students subscription; proto se používá Azure Storage Static Website jako nejjednodušší dostupná varianta. GitHub Actions zajišťuje nasazení bez ukládání tajných hodnot v repozitáři.
+
+### Jednorázové nastavení v Azure
+
+1. V Azure vytvořte **Storage account** typu `StorageV2`, SKU `Standard_LRS`, v regionu povoleném vaší subscription.
+2. Zapněte **Static website**, nastavte `index.html` jako index document a `index.html` jako error document.
+3. V **Access keys** zkopírujte jeden account key pouze do GitHubu a nikam jej necommitujte.
+4. V GitHubu otevřete **Settings → Secrets and variables → Actions** a vytvořte secrets:
+   - `AZURE_STORAGE_ACCOUNT_NAME` = název storage accountu.
+   - `AZURE_STORAGE_ACCOUNT_KEY` = account key.
+5. Po pushi do `main` workflow **CI/CD to Azure Storage Static Website** nejprve ověří soubory a následně nahraje web do `$web`. Pull requesty workflow nespouštějí deployment.
+
+Veřejná adresa je v Azure u storage accountu v **Static website → Primary endpoint**. Tento hosting má náklady podle storage a operací; čerpá Azure for Students kredit.
 
 ---
 
