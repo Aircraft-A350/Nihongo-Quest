@@ -32,6 +32,12 @@
 
 ---
 
+## 🚀 Živá verze aplikace
+
+Web běží na Azure Storage Static Website:
+
+**https://nihongoquest1113220123.z1.web.core.windows.net/**
+
 ## ☁️ Nasazení na Azure
 
 Aplikace je pouze statický HTML/JS web bez serveru nebo buildu. Azure Static Web Apps nebylo možné použít, protože podporované regiony služby nejsou dostupné v Azure for Students subscription; proto se používá Azure Storage Static Website jako nejjednodušší dostupná varianta. GitHub Actions zajišťuje nasazení bez ukládání tajných hodnot v repozitáři.
