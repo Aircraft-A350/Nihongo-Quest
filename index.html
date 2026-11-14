@@ -79,9 +79,45 @@
         .glass-tile:hover { transform: translateY(-2px); }
         .glass-control > *,
         .glass-tile > * { position: relative; z-index: 1; }
+        .nav-tab,
+        .mode-btn {
+            position: relative;
+            border-radius: 999px;
+            transition: background 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 120ms ease;
+        }
+        .nav-tab {
+            background: transparent !important;
+            border-color: transparent !important;
+            color: #5c7180 !important;
+        }
+        .nav-tab.active-tab,
+        .mode-btn.active {
+            background: rgba(255, 255, 255, 0.78) !important;
+            border-color: rgba(255, 255, 255, 0.88) !important;
+            color: #3a949a !important;
+            box-shadow: 0 7px 18px rgba(65, 113, 127, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        .mode-btn.active { color: #bd668d !important; }
+        .nav-tab:hover,
+        .mode-btn:hover { color: #3a949a !important; }
+        .nav-tab:active,
+        .mode-btn:active { transform: scale(0.97); }
+        .nav-tab:focus-visible,
+        .mode-btn:focus-visible,
+        button:focus-visible,
+        input:focus-visible {
+            outline: 3px solid rgba(58, 148, 154, 0.3);
+            outline-offset: 2px;
+        }
+        #connStatus {
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 3px 10px rgba(65, 113, 127, 0.2), 0 0 0 3px rgba(255, 255, 255, 0.3);
+        }
         @media (prefers-reduced-motion: reduce) {
             .glass-tile,
-            .glass-control { transition: none; }
+            .glass-control,
+            .nav-tab,
+            .mode-btn { transition: none; }
             .glass-tile:hover { transform: none; }
         }
         
@@ -308,7 +344,7 @@
                     </button>
                 </div>
             </div>
-            <div class="flex flex-wrap justify-center gap-2 md:gap-4 w-full lg:w-auto">
+            <div class="glass-control flex flex-wrap justify-center gap-1 p-1 rounded-full w-full lg:w-auto">
                 <button id="tabHiragana" class="nav-tab active-tab px-3 py-2 md:px-4 md:py-2 rounded-lg border border-cyan-500 text-cyan-400 bg-cyan-900/30 text-xs md:text-base flex-1 md:flex-none">HIRAGANA</button>
                 <button id="tabKatakana" class="nav-tab px-3 py-2 md:px-4 md:py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-cyan-400 text-xs md:text-base flex-1 md:flex-none">KATAKANA</button>
                 <button id="tabKanji" class="nav-tab px-3 py-2 md:px-4 md:py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-cyan-400 text-xs md:text-base flex-1 md:flex-none">KANJI</button>
