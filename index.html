@@ -26,31 +26,32 @@
         }
     </script>
     <style>
-        :root { color-scheme: dark; }
+        :root { color-scheme: light; }
         body {
             background:
-                radial-gradient(circle at 8% 0%, rgba(6, 182, 212, 0.16), transparent 32rem),
-                radial-gradient(circle at 92% 10%, rgba(236, 72, 153, 0.14), transparent 30rem),
-                #020617;
-            color: #f8fafc;
+                radial-gradient(circle at 8% 0%, rgba(125, 211, 252, 0.58), transparent 34rem),
+                radial-gradient(circle at 92% 8%, rgba(196, 181, 253, 0.48), transparent 32rem),
+                radial-gradient(circle at 50% 100%, rgba(110, 231, 183, 0.38), transparent 36rem),
+                linear-gradient(135deg, #eff9fb 0%, #f5f3ff 48%, #eefbf6 100%);
+            color: #26364a;
             overflow-x: hidden;
             background-attachment: fixed;
         }
-        .glow-pink { box-shadow: 0 0 15px rgba(236, 72, 153, 0.4); }
-        .glow-cyan { box-shadow: 0 0 15px rgba(6, 182, 212, 0.4); }
-        .text-glow-pink { text-shadow: 0 0 10px rgba(236, 72, 153, 0.8); }
-        .text-glow-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.8); }
+        .glow-pink { box-shadow: 0 14px 34px rgba(236, 72, 153, 0.16); }
+        .glow-cyan { box-shadow: 0 14px 34px rgba(6, 182, 212, 0.16); }
+        .text-glow-pink { text-shadow: 0 2px 12px rgba(236, 72, 153, 0.22); }
+        .text-glow-cyan { text-shadow: 0 2px 12px rgba(6, 182, 212, 0.22); }
 
         .glass-panel,
         .glass-tile,
         .glass-control {
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(148, 163, 184, 0.22);
-            background: linear-gradient(135deg, rgba(51, 65, 85, 0.68), rgba(15, 23, 42, 0.34)) !important;
-            box-shadow: 0 18px 45px rgba(2, 6, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
-            -webkit-backdrop-filter: blur(24px) saturate(155%) !important;
-            backdrop-filter: blur(24px) saturate(155%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.78);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(242, 248, 255, 0.42)) !important;
+            box-shadow: 0 22px 55px rgba(82, 105, 132, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+            -webkit-backdrop-filter: blur(28px) saturate(135%) !important;
+            backdrop-filter: blur(28px) saturate(135%) !important;
         }
         .glass-panel::before,
         .glass-tile::before,
@@ -59,14 +60,43 @@
             position: absolute;
             inset: 0;
             pointer-events: none;
-            background: linear-gradient(120deg, rgba(255, 255, 255, 0.16), transparent 32%, transparent 70%, rgba(6, 182, 212, 0.1));
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.72), transparent 34%, transparent 68%, rgba(125, 211, 252, 0.16));
             z-index: 0;
         }
         .glass-tile,
         .glass-control { transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease; }
         .glass-tile:hover,
-        .glass-control:hover { border-color: rgba(103, 232, 249, 0.75) !important; box-shadow: 0 14px 32px rgba(2, 6, 23, 0.32), 0 0 22px rgba(6, 182, 212, 0.2) !important; }
+        .glass-control:hover { border-color: rgba(14, 165, 233, 0.52) !important; box-shadow: 0 18px 38px rgba(82, 105, 132, 0.2), 0 0 24px rgba(125, 211, 252, 0.22) !important; }
         .glass-tile:hover { transform: translateY(-2px); }
+        .glass-panel .text-white,
+        .glass-tile .text-white,
+        .glass-tile .text-slate-200 { color: #26364a !important; }
+        .glass-panel .text-slate-300,
+        .glass-panel .text-slate-400,
+        .glass-tile .text-slate-400 { color: #64748b !important; }
+        .glass-panel .bg-slate-900,
+        .glass-panel .bg-slate-800,
+        .glass-control .bg-slate-800 { background-color: rgba(255, 255, 255, 0.42) !important; }
+        .glass-panel .border-slate-700,
+        .glass-panel .border-slate-800 { border-color: rgba(255, 255, 255, 0.7) !important; }
+        .nav-tab {
+            background: rgba(255, 255, 255, 0.38) !important;
+            border-color: rgba(255, 255, 255, 0.82) !important;
+            color: #64748b !important;
+            box-shadow: 0 8px 20px rgba(82, 105, 132, 0.08);
+        }
+        .nav-tab.active-tab {
+            background: rgba(255, 255, 255, 0.76) !important;
+            border-color: rgba(14, 165, 233, 0.5) !important;
+            color: #087f9a !important;
+        }
+        .mode-btn.active {
+            background: rgba(255, 255, 255, 0.72) !important;
+            color: #d9468b !important;
+            border-color: rgba(236, 72, 153, 0.36) !important;
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.14) !important;
+        }
+        .mode-btn:not(.active) { color: #64748b !important; }
         .glass-control > *,
         .glass-tile > * { position: relative; z-index: 1; }
         @media (prefers-reduced-motion: reduce) {
@@ -261,7 +291,7 @@
     <div class="max-w-5xl mx-auto w-full p-4 md:p-8 flex flex-col flex-1">
         
         <!-- Header -->
-        <header class="flex flex-col lg:flex-row justify-between items-center mb-6 md:mb-8 gap-4 w-full">
+        <header class="glass-panel rounded-[28px] px-4 py-3 md:px-6 flex flex-col lg:flex-row justify-between items-center mb-6 md:mb-8 gap-4 w-full">
             <div class="flex justify-between items-center w-full lg:w-auto gap-2">
                 <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-pink-500 flex items-center gap-2 text-glow-pink shrink-0">
                     <span class="text-white bg-pink-500 rounded p-1 text-xs md:text-sm">文</span> NIHONGO QUEST
