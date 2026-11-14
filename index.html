@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="cs" class="dark">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nihongo Quest - Cyberpunk Learning</title>
-    <meta name="description" content="Nihongo Quest - Cyberpunk Japanese Learning Platform for Hiragana, Katakana, and Kanji.">
-    <meta name="theme-color" content="#020617">
+    <title>Nihongo Quest - Japanese Learning</title>
+    <meta name="description" content="Nihongo Quest - Japanese learning platform for Hiragana, Katakana, and Kanji.">
+    <meta name="theme-color" content="#eaf7f7">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23ec4899%22/><text y=%22.75em%22 x=%2250%25%22 text-anchor=%22middle%22 font-size=%2265%22 font-weight=%22bold%22 fill=%22white%22>文</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +19,7 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        cyber: { pink: '#ec4899', cyan: '#06b6d4', dark: '#020617', panel: '#0f172a' }
+                        cyber: { pink: '#bd668d', cyan: '#3a949a', dark: '#edf8f7', panel: '#ffffff' }
                     }
                 }
             }
@@ -29,29 +29,38 @@
         :root { color-scheme: light; }
         body {
             background:
-                radial-gradient(circle at 8% 0%, rgba(125, 211, 252, 0.58), transparent 34rem),
-                radial-gradient(circle at 92% 8%, rgba(196, 181, 253, 0.48), transparent 32rem),
-                radial-gradient(circle at 50% 100%, rgba(110, 231, 183, 0.38), transparent 36rem),
-                linear-gradient(135deg, #eff9fb 0%, #f5f3ff 48%, #eefbf6 100%);
-            color: #26364a;
+                radial-gradient(circle at 8% 0%, rgba(121, 218, 210, 0.42), transparent 34rem),
+                radial-gradient(circle at 92% 8%, rgba(180, 193, 255, 0.4), transparent 32rem),
+                radial-gradient(circle at 50% 100%, rgba(255, 218, 188, 0.32), transparent 36rem),
+                #edf8f7;
+            color: #233746;
             overflow-x: hidden;
             background-attachment: fixed;
         }
-        .glow-pink { box-shadow: 0 14px 34px rgba(236, 72, 153, 0.16); }
-        .glow-cyan { box-shadow: 0 14px 34px rgba(6, 182, 212, 0.16); }
-        .text-glow-pink { text-shadow: 0 2px 12px rgba(236, 72, 153, 0.22); }
-        .text-glow-cyan { text-shadow: 0 2px 12px rgba(6, 182, 212, 0.22); }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255,255,255,.32), transparent 45%, rgba(184, 232, 226, .18));
+            z-index: -1;
+        }
+        .glow-pink, .glow-cyan {
+            box-shadow: 0 16px 38px rgba(70, 127, 145, .16), inset 0 1px 0 rgba(255,255,255,.76) !important;
+        }
+        .text-glow-pink, .text-glow-cyan { text-shadow: none; }
 
         .glass-panel,
         .glass-tile,
         .glass-control {
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.78);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(242, 248, 255, 0.42)) !important;
-            box-shadow: 0 22px 55px rgba(82, 105, 132, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
-            -webkit-backdrop-filter: blur(28px) saturate(135%) !important;
-            backdrop-filter: blur(28px) saturate(135%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.74) !important;
+            background: linear-gradient(135deg, rgba(255,255,255,.72), rgba(239, 251, 249, .48)) !important;
+            box-shadow: 0 18px 45px rgba(65, 113, 127, .16), inset 0 1px 0 rgba(255, 255, 255, .9) !important;
+            -webkit-backdrop-filter: blur(24px) saturate(145%) !important;
+            backdrop-filter: blur(24px) saturate(145%) !important;
+            border-radius: 1.35rem;
         }
         .glass-panel::before,
         .glass-tile::before,
@@ -60,43 +69,14 @@
             position: absolute;
             inset: 0;
             pointer-events: none;
-            background: linear-gradient(120deg, rgba(255, 255, 255, 0.72), transparent 34%, transparent 68%, rgba(125, 211, 252, 0.16));
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.52), transparent 36%, transparent 72%, rgba(128, 215, 210, 0.12));
             z-index: 0;
         }
         .glass-tile,
         .glass-control { transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease; }
         .glass-tile:hover,
-        .glass-control:hover { border-color: rgba(14, 165, 233, 0.52) !important; box-shadow: 0 18px 38px rgba(82, 105, 132, 0.2), 0 0 24px rgba(125, 211, 252, 0.22) !important; }
+        .glass-control:hover { border-color: rgba(76, 171, 177, 0.7) !important; box-shadow: 0 18px 34px rgba(65, 113, 127, .2), 0 0 0 4px rgba(125, 213, 207, .12) !important; }
         .glass-tile:hover { transform: translateY(-2px); }
-        .glass-panel .text-white,
-        .glass-tile .text-white,
-        .glass-tile .text-slate-200 { color: #26364a !important; }
-        .glass-panel .text-slate-300,
-        .glass-panel .text-slate-400,
-        .glass-tile .text-slate-400 { color: #64748b !important; }
-        .glass-panel .bg-slate-900,
-        .glass-panel .bg-slate-800,
-        .glass-control .bg-slate-800 { background-color: rgba(255, 255, 255, 0.42) !important; }
-        .glass-panel .border-slate-700,
-        .glass-panel .border-slate-800 { border-color: rgba(255, 255, 255, 0.7) !important; }
-        .nav-tab {
-            background: rgba(255, 255, 255, 0.38) !important;
-            border-color: rgba(255, 255, 255, 0.82) !important;
-            color: #64748b !important;
-            box-shadow: 0 8px 20px rgba(82, 105, 132, 0.08);
-        }
-        .nav-tab.active-tab {
-            background: rgba(255, 255, 255, 0.76) !important;
-            border-color: rgba(14, 165, 233, 0.5) !important;
-            color: #087f9a !important;
-        }
-        .mode-btn.active {
-            background: rgba(255, 255, 255, 0.72) !important;
-            color: #d9468b !important;
-            border-color: rgba(236, 72, 153, 0.36) !important;
-            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.14) !important;
-        }
-        .mode-btn:not(.active) { color: #64748b !important; }
         .glass-control > *,
         .glass-tile > * { position: relative; z-index: 1; }
         @media (prefers-reduced-motion: reduce) {
@@ -107,9 +87,25 @@
         
         /* Custom scrollbar for grid */
         .hide-scrollbar::-webkit-scrollbar { height: 6px; }
-        .hide-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 10px; }
-        .hide-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        .hide-scrollbar::-webkit-scrollbar-thumb:hover { background: #ec4899; }
+        .hide-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,.42); border-radius: 10px; }
+        .hide-scrollbar::-webkit-scrollbar-thumb { background: rgba(93, 161, 167, .45); border-radius: 10px; }
+        .hide-scrollbar::-webkit-scrollbar-thumb:hover { background: #70bfc0; }
+
+        body .text-white { color: #243746 !important; }
+        body .text-slate-200, body .text-slate-300, body .text-slate-400,
+        body .text-slate-500 { color: #5c7180 !important; }
+        body .text-pink-500, body .text-pink-400 { color: #bd668d !important; }
+        body .text-cyan-500, body .text-cyan-400 { color: #3a949a !important; }
+        body .bg-slate-950, body .bg-slate-900, body .bg-slate-800,
+        body .bg-slate-700 { background-color: rgba(255,255,255,.48) !important; }
+        body [class*="bg-slate-950"] { background-color: rgba(233, 247, 247, .72) !important; }
+        body .bg-cyan-900\/30 { background-color: rgba(126, 211, 205, .18) !important; }
+        body .border-slate-800, body .border-slate-700,
+        body .border-cyan-900\/50 { border-color: rgba(255,255,255,.66) !important; }
+        body .bg-pink-500, body .bg-pink-600 { background-color: #c97b9d !important; }
+        body .bg-cyan-600 { background-color: #5aaeb0 !important; }
+        body .bg-gradient-to-r { background-image: linear-gradient(90deg, #c985a6, #e2a8b7) !important; }
+        body .shadow-\[0_0_15px_rgba\(6\,182\,212\,0\.15\)\] { box-shadow: 0 18px 45px rgba(65, 113, 127, .16) !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
@@ -291,7 +287,7 @@
     <div class="max-w-5xl mx-auto w-full p-4 md:p-8 flex flex-col flex-1">
         
         <!-- Header -->
-        <header class="glass-panel rounded-[28px] px-4 py-3 md:px-6 flex flex-col lg:flex-row justify-between items-center mb-6 md:mb-8 gap-4 w-full">
+        <header class="flex flex-col lg:flex-row justify-between items-center mb-6 md:mb-8 gap-4 w-full">
             <div class="flex justify-between items-center w-full lg:w-auto gap-2">
                 <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-pink-500 flex items-center gap-2 text-glow-pink shrink-0">
                     <span class="text-white bg-pink-500 rounded p-1 text-xs md:text-sm">文</span> NIHONGO QUEST
